@@ -1,5 +1,5 @@
 from mysql.connector import Error
-from sql_connection import get_sql_connection 
+from sql_connection import get_sql_connection
 
 def create_table(cnx):
     try:
@@ -49,7 +49,7 @@ def create_table(cnx):
         if cursor:
             cursor.close()
    
-def get_all_product(cnx):
+def get_product(cnx):
     try:
         cursor = cnx.cursor()
 
@@ -68,15 +68,64 @@ def get_all_product(cnx):
                 }
             )
             print(product_id, name, uom_id, price_per_unit, uom_name)
-        return response
+        return {"status":"success","data":response}
     except Error as err:
         print("Error while fetching products: ", err)
+        return {"status":"error"}
 
     finally:
         if cursor:
             cursor.close()
 
-def insert_uom(cnx, uom):
+def create_product(cnx, product):
+    try:
+        cursor = cnx.cursor()
+        query = "INSERT INTO product (name, uom_id, price_per_unit) VALUES (%s, %s, %s)"
+        data = (product['product_name'],product['uom_id'],product['price_per_unit'])
+        cursor.execute(query, data)
+        cnx.commit()
+
+        # return cursor.lastrowid
+        return {"status":"success"}
+    
+    except Error as err:
+        print("Error while inserting new product: ", err)
+        return {"status":"error"}
+    finally:
+        if cursor:
+            cursor.close()
+
+def delete_product(cnx,product_id):
+    try:
+        cursor = cnx.cursor()
+        query = ("DELETE FROM product where product_id=%s")
+        data = (str(product_id),) # we need to add comma to create a single-element tuple
+        cursor.execute(query, data)
+        cnx.commit()
+        return {"status":"success"}
+    except Error as err:
+        print("Error while deleting the product: ", err)
+        return {"status":"error"}
+    finally:
+        if cursor:
+            cursor.close()
+
+def update_product(cnx,product):
+    try:
+        cursor = cnx.cursor()
+        query = ("UPDATE product SET name = %s, uom_id = %s, price_per_unit = %s WHERE product_id = %s")
+        data = (product['product_name'],product['uom_id'],product['price_per_unit'],str(product['product_id'])) # we need to add comma to create a single-element tuple
+        cursor.execute(query, data)
+        cnx.commit()
+        return {"status":"success"}
+    except Error as err:
+        print("Error while deleting the product: ", err)
+        return {"status":"error"}
+    finally:
+        if cursor:
+            cursor.close()
+
+def create_uom(cnx, uom):
     try:
         cursor = cnx.cursor()
         query = "INSERT IGNORE INTO uom (uom_id, uom_name) VALUES (%s, %s)"
@@ -92,51 +141,28 @@ def insert_uom(cnx, uom):
         if cursor:
             cursor.close()
 
-def insert_new_product(cnx, product):
-    try:
-        cursor = cnx.cursor()
-        query = "INSERT INTO product (name, uom_id, price_per_unit) VALUES (%s, %s, %s)"
-        data = (product['product_name'],product['uom_id'],product['price_per_unit'])
-        cursor.execute(query, data)
-        cnx.commit()
-
-        return cursor.lastrowid
-
-    except Error as err:
-        print("Error while inserting new product: ", err)
-    finally:
-        if cursor:
-            cursor.close()
-
-def delete_product(cnx,product_id):
-    try:
-        cursor = cnx.cursor()
-        query = (f"DELETE FROM product where product_id={str(product_id)}")
-        cursor.execute(query)
-        cnx.commit()
-        return "deleted"
-    except Error as err:
-        print("Error while deleting the product: ", err)
-    finally:
-        if cursor:
-            cursor.close()
-
  
 if __name__ == "__main__":
     try:
         cnx = get_sql_connection()
-        print(create_table(cnx))
-        print(insert_uom(cnx, {
-            'uom_id':3,
-            'uom_name':'litre'
-        }))
-        print(get_all_product(cnx))
-        print(insert_new_product(cnx,{
-            'product_name':'cabbage',
-            'uom_id':'3',
-            'price_per_unit':'10'
-        }))
-        print(delete_product(cnx,1))
+        # print(create_table(cnx))
+        # print(create_uom(cnx, {
+        #     'uom_id':3,
+        #     'uom_name':'litre'
+        # }))
+        # print(get_product(cnx))
+        # print(create_product(cnx,{
+        #     'product_name':'cabbage',
+        #     'uom_id':'3',
+        #     'price_per_unit':'10'
+        # }))
+        # print(update_product(cnx,{
+        #     'product_name':'milk',
+        #     'uom_id':'3',
+        #     'price_per_unit':'100',
+        #     'product_id': 2
+        # }))
+        # print(delete_product(cnx,1))
     finally:
         if cnx:
             cnx.close()
