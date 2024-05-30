@@ -11,18 +11,10 @@ interface products {
 function Products() {
   const [data, setData] = useState<products[]>([]);
   const [isEdit, setIsEdit] = useState<number | null>(null);
-
-  // useEffect(() => {
-  //   const body = JSON.stringify({ product_id: 8 });
-  //   fetch("http://localhost:5000/deleteProduct", {
-  //     method: "POST",
-  //     headers: { "content-type": "application/json" },
-  //     body: body,
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => console.log({ data }))
-  //     .catch((error) => console.error("Error:", error));
-  //   // }, []);
+  const [value, setValue] = useState<{
+    name: string;
+    price_per_unit: string;
+  }>({ name: "", price_per_unit: "" });
 
   //   useEffect(() => {
   //     const body = JSON.stringify({
@@ -40,12 +32,41 @@ function Products() {
   //       .catch((error) => console.error("Error:", error));
   //   }, []);
 
+  function handleEditClick(product: products) {
+    if (isEdit === null) {
+      setValue({
+        name: product.name,
+        price_per_unit: product.price_per_unit.toString(),
+      });
+      return setIsEdit(product.product_id);
+    }
+
+    const body = JSON.stringify({
+      product_name: value.name,
+      uom_id: "3",
+      price_per_unit: value.price_per_unit,
+      product_id: product.product_id,
+    });
+    fetch("http://localhost:5000/updateProduct", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: body,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log({ data });
+        setIsEdit(null);
+        getProduct();
+      })
+      .catch((error) => console.error("Error:", error));
+  }
+
   function handleDeleteClick(product_id: number) {
     const body = JSON.stringify({
       product_id: product_id,
     });
     fetch("http://localhost:5000/deleteProduct", {
-      method: "POST",
+      method: "DELETE",
       headers: { "content-type": "application/json" },
       body: body,
     })
@@ -91,10 +112,22 @@ function Products() {
               {isEdit == product.product_id ? (
                 <>
                   <div>
-                    <input type="text" value={product.name} />
+                    <input
+                      type="text"
+                      value={value.name}
+                      onChange={(e) =>
+                        setValue({ ...value, name: e.target.value })
+                      }
+                    />
                   </div>
                   <div>
-                    <input type="text" value={product.price_per_unit} />
+                    <input
+                      type="text"
+                      value={value.price_per_unit}
+                      onChange={(e) =>
+                        setValue({ ...value, price_per_unit: e.target.value })
+                      }
+                    />
                   </div>
                 </>
               ) : (
@@ -107,7 +140,7 @@ function Products() {
               )}
               <div className=" flex justify-around">
                 <button
-                  onClick={() => setIsEdit(product.product_id)}
+                  onClick={() => handleEditClick(product)}
                   className=" bg-blue-400 px-4 py-1 rounded-xl"
                 >
                   {isEdit == product.product_id ? "Save" : "Edit"}

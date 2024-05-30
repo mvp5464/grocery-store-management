@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from database import delete_product, get_product, create_product
+from database import delete_product, get_product, create_product, update_product
 from sql_connection import get_sql_connection
 from flask_cors import CORS
 
@@ -19,7 +19,7 @@ def getProducts():
    except:
       return jsonify({"message":"Error while fetching product"}), 400
 
-@app.route("/deleteProduct",methods=['POST'])
+@app.route("/deleteProduct",methods=['DELETE'])
 def deleteProduct():
    try:
       product_id = request.get_json()
@@ -43,11 +43,11 @@ def createProduct():
    except:
       return jsonify({"message":"Error while adding product"}), 400
 
-@app.route("/updateProduct",methods=['POST'])
+@app.route("/updateProduct",methods=['PUT'])
 def updateProduct():
    try:
       product = request.get_json()
-      response = create_product(cnx,product)
+      response = update_product(cnx,product)
       if response['status'] == "success":
          return jsonify({"message": "Product added successfully!"}), 200
       else:
