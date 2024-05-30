@@ -1,4 +1,3 @@
-from urllib import response
 from flask import Flask, jsonify, request
 from database import delete_product, get_product, create_product
 from sql_connection import get_sql_connection
@@ -57,4 +56,5 @@ def updateProduct():
       return jsonify({"message":"Error while adding product"}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True)
+   #  app.run(debug=True)
+   app.run(port=5000)
